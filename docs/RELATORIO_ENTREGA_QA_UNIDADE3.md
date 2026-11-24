@@ -47,7 +47,7 @@ Essa separação reduz falsos diagnósticos: uma indisponibilidade externa não 
 | CEP | Cidade esperada | UF | Resultado esperado |
 |---|---|---|---|
 | 01001000 | São Paulo | SP | PASS |
-| 40020000 | Salvador | BA | PASS |
+| 40010000 | Salvador | BA | PASS |
 | 30130110 | Belo Horizonte | MG | PASS |
 
 ## 5. Critérios de aceite
