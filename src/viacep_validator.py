@@ -35,12 +35,24 @@ def carregar_casos(caminho: str | Path) -> list[dict[str, str]]:
             raise ValueError(f"Caso {indice}: cidade não pode ser vazia.")
         if not re.fullmatch(r"[A-Z]{2}", str(caso["estado"])):
             raise ValueError(f"Caso {indice}: estado deve ser uma UF com 2 letras maiúsculas.")
-        casos.append({
-            "cep": str(caso["cep"]),
-            "cidade": str(caso["cidade"]).strip(),
-            "estado": str(caso["estado"]).strip(),
-        })
+        casos.append(
+            {
+                "cep": str(caso["cep"]),
+                "cidade": str(caso["cidade"]).strip(),
+                "estado": str(caso["estado"]).strip(),
+            }
+        )
     return casos
+
+
+def _resposta_indica_cep_inexistente(dados: dict[str, Any]) -> bool:
+    """Normaliza as formas conhecidas de retorno do campo 'erro' do ViaCEP."""
+    valor = dados.get("erro")
+    if valor is True:
+        return True
+    if isinstance(valor, str) and valor.strip().lower() == "true":
+        return True
+    return False
 
 
 def consultar_cep(cep: str, timeout: int = 10) -> dict[str, Any]:
@@ -56,7 +68,7 @@ def consultar_cep(cep: str, timeout: int = 10) -> dict[str, Any]:
     resposta.raise_for_status()
     dados = resposta.json()
 
-    if dados.get("erro") is True:
+    if _resposta_indica_cep_inexistente(dados):
         raise AssertionError(f"CEP {cep} não encontrado pelo ViaCEP.")
 
     return dados
