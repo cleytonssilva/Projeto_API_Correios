@@ -4,63 +4,59 @@
 
 - Repositório publicado: **PASS**
 - Branch: `main`
-- Validações locais determinísticas: **PASS** — 4 testes executados com sucesso.
-- Estrutura do JSON: **PASS** — 3 casos com os campos `cep`, `cidade` e `estado`.
-- Regra de detecção de divergência de cidade: **PASS**.
-- Regra de detecção de divergência de UF: **PASS**.
-- Consulta externa de referência ao ViaCEP para `01001000`: **CONFIRMADA** — São Paulo/SP.
-- Teste de integração ViaCEP no ambiente de preparação: **BLOCKED_BY_NETWORK** — falha de resolução DNS para `viacep.com.br`.
-- GitHub Actions: **BLOCKED_BY_ACTIONS_STARTUP** — o workflow é reconhecido e cria runs, porém o job falha antes da execução de qualquer step; re-run apresentou o mesmo comportamento.
-- A falha de startup do GitHub Actions não é classificada como defeito funcional da suíte de testes.
+- Ambiente de execução real: **Windows / Python 3.12.10 / .venv**
+- Validações locais determinísticas: **PASS — 5/5**
+- Integração real ViaCEP: **PASS — 3/3**
+- Resultado consolidado da suíte: **PASS — 8/8**
+- Status final: `QA_UNIDADE3=PASS`
+- GitHub Actions: **BLOCKED_BY_ACTIONS_STARTUP** — o workflow é reconhecido e cria runs, porém o job falha antes da execução de qualquer step. Esse bloqueio permanece classificado como infraestrutura de CI e não invalida a execução real local.
 
-## Evidências
+## Execução final validada
 
-- `docs/evidencias/junit-offline.xml`: 4 testes locais com sucesso.
-- Workflow publicado em `.github/workflows/qa-unidade3.yml`.
-- Execução GitHub Actions mais recente analisada: run `45298437782`, tentativa 2, conclusão `failure`, sem steps executados.
-- Commit da publicação completa antes desta atualização: `df13e85980895dfa21f41dc2e4413fd733f940a2`.
+### Validações locais
 
-## Próxima validação operacional
+- `test_json_deve_conter_tres_casos_com_campos_exigidos` — PASS
+- `test_validacao_deve_detectar_cidade_divergente` — PASS
+- `test_validacao_deve_detectar_uf_divergente` — PASS
+- `test_consulta_deve_tratar_erro_string_do_viacep` — PASS
+- `test_json_bruto_e_valido` — PASS
 
-Para concluir a prova de integração automatizada, executar a suíte em um ambiente com acesso normal ao ViaCEP:
+### Integração real com o ViaCEP
 
-```powershell
-python -m pip install -r requirements.txt
-python -m pytest -v -m integration
-```
+- `01001000` → São Paulo / SP — **PASS**
+- `40010000` → Salvador / BA — **PASS**
+- `30130110` → Belo Horizonte / MG — **PASS**
 
-Resultado esperado:
+Tempo observado na execução final:
 
-- `01001000` → São Paulo / SP
-- `40010000` → Salvador / BA
-- `30130110` → Belo Horizonte / MG
+- camada local: aproximadamente 0,28 s;
+- integração real: aproximadamente 2,06 s.
 
-A atividade permanece executável localmente e o bloqueio de CI está classificado separadamente como infraestrutura de GitHub Actions.
+## Histórico de melhoria de QA
 
+Uma execução anterior identificou que o caso `40020000` retornava `{"erro": "true"}` no ViaCEP.
 
-## Registro de execução real no Windows
+A partir dessa falha real:
 
-Execução realizada no Windows com Python 3.12.10 e ambiente virtual isolado:
+1. a massa de teste de Salvador foi corrigida para `40010000`;
+2. o tratamento de `erro` passou a aceitar booleano `true` e string `"true"`;
+3. foi criado um teste de regressão específico para esse comportamento;
+4. o reteste completo foi executado;
+5. o resultado final passou para **8/8 PASS**.
 
-- Validações locais: **PASS — 4/4**.
-- Integração real ViaCEP:
-  - `01001000` → **PASS** — São Paulo/SP.
-  - `40020000` → **FAIL** — ViaCEP retornou `{"erro": "true"}`.
-  - `30130110` → **PASS** — Belo Horizonte/MG.
+Esse ciclo demonstra detecção de defeito, diagnóstico, correção, regressão e reteste — comportamento esperado em uma prática de QA.
 
-### Diagnóstico do FAIL
+## Evidências do projeto
 
-O caso `40020000` foi classificado como massa de teste inadequada para a base atual do ViaCEP. A execução também revelou que o campo `erro` pode chegar como string `"true"`, enquanto a implementação inicial tratava apenas o booleano `true`.
+- `docs/evidencias/junit-offline.xml`: evidência da etapa local anterior.
+- `reports/junit.xml`: gerado na execução real local da integração.
+- `docs/evidencias/EXECUCAO_WINDOWS_PASS.md`: resumo versionado da execução final.
+- Workflow: `.github/workflows/qa-unidade3.yml`.
 
-### Correções aplicadas
+## Veredito
 
-- caso Salvador alterado para `40010000`;
-- tratamento de `erro` normalizado para booleano ou string;
-- novo teste determinístico adicionado para reproduzir `{"erro": "true"}`;
-- documentação e relatório atualizados.
+`RETEST_REQUIRED=false`
 
-### Estado
+`QA_UNIDADE3=PASS`
 
-`RETEST_REQUIRED=true`
-
-O aceite final da integração será dado somente após nova execução real com os três CEPs atualizados.
+A atividade está tecnicamente validada para entrega quanto ao escopo solicitado de API e ao cenário Web em Gherkin. O GitHub Actions permanece como melhoria de infraestrutura e não como pendência funcional da atividade.
