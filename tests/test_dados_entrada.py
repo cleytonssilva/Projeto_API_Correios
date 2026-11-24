@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from src.viacep_validator import carregar_casos, validar_retorno
+from src.viacep_validator import carregar_casos, consultar_cep, validar_retorno
 
 DADOS = Path(__file__).resolve().parents[1] / "dados" / "ceps.json"
 
@@ -29,6 +29,23 @@ def test_validacao_deve_detectar_uf_divergente():
 
     with pytest.raises(AssertionError, match="UF divergente"):
         validar_retorno(caso, retorno_incorreto)
+
+
+def test_consulta_deve_tratar_erro_string_do_viacep(monkeypatch):
+    class RespostaFake:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"erro": "true"}
+
+    def get_fake(*args, **kwargs):
+        return RespostaFake()
+
+    monkeypatch.setattr("src.viacep_validator.requests.get", get_fake)
+
+    with pytest.raises(AssertionError, match="não encontrado pelo ViaCEP"):
+        consultar_cep("40020000")
 
 
 def test_json_bruto_e_valido():
