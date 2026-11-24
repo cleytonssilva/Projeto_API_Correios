@@ -32,7 +32,7 @@ python -m pytest -v -m integration
 Resultado esperado:
 
 - `01001000` → São Paulo / SP
-- `40020000` → Salvador / BA
+- `40010000` → Salvador / BA
 - `30130110` → Belo Horizonte / MG
 
 A atividade permanece executável localmente e o bloqueio de CI está classificado separadamente como infraestrutura de GitHub Actions.
