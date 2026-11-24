@@ -24,14 +24,35 @@ O exercício foi conectado a um problema real do fluxo de expedição: **dados d
 - Python 3.11 ou superior;
 - acesso à internet para o teste de integração com `https://viacep.com.br`.
 
-## Execução no Windows / PowerShell
+## Execução no Windows
+
+### Opção recomendada — sem alterar a ExecutionPolicy do PowerShell
+
+Não é necessário ativar a `.venv`. O arquivo `run_qa.cmd` cria o ambiente virtual se necessário e usa diretamente o Python isolado:
+
+```powershell
+git pull
+.\run_qa.cmd
+```
+
+Execução equivalente, passo a passo:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-.\run_qa.ps1
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pytest -v -m "not integration"
+.\.venv\Scripts\python.exe -m pytest -v -m integration --junitxml=reports\junit.xml
 ```
+
+### PowerShell script
+
+Se a política local permitir scripts, também pode ser usado:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\run_qa.ps1
+```
+
+O `Bypass` acima vale somente para esse processo do PowerShell e não altera permanentemente a política do computador.
 
 ## Execução manual
 
