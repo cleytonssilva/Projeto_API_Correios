@@ -2,7 +2,8 @@
 
 **Projeto:** Projeto API Correios - Recorte acadêmico de QA  
 **Aluno:** Cleyton Santiago  
-**Repositório-alvo:** `cleytonssilva/Projeto_API_Correios`
+**Repositório:** `cleytonssilva/Projeto_API_Correios`  
+**Status final:** `QA_UNIDADE3=PASS`
 
 ## 1. Objetivo
 
@@ -12,7 +13,7 @@ A atividade foi contextualizada com o Projeto API Correios: CEP, cidade e UF sã
 
 ## 2. Requisito acadêmico - API
 
-A entrada contém três campos:
+A entrada contém exatamente três campos:
 
 ```json
 {
@@ -22,78 +23,102 @@ A entrada contém três campos:
 }
 ```
 
-O arquivo `dados/ceps.json` contém três casos. O teste consulta `https://viacep.com.br/ws/{CEP}/json/` e compara:
+O arquivo `dados/ceps.json` possui três casos e o teste consulta `https://viacep.com.br/ws/{CEP}/json/`.
 
+São comparados:
+
+- CEP retornado x CEP consultado;
 - `localidade` x `cidade` esperada;
-- `uf` x `estado` esperado;
-- CEP retornado x CEP consultado.
+- `uf` x `estado` esperado.
 
 ## 3. Estratégia de QA
 
-Foram separados dois níveis de teste:
+A suíte foi separada em dois níveis.
 
 ### 3.1 Validação determinística
 
-Testa localmente a estrutura do JSON e comprova que a regra detecta cidade/UF divergentes.
+Verifica:
 
-### 3.2 Teste de integração
+- estrutura do JSON;
+- presença dos três casos;
+- regra de divergência de cidade;
+- regra de divergência de UF;
+- tratamento do retorno de CEP inexistente quando o campo `erro` chega como string.
 
-Realiza chamada real ao ViaCEP. Se o serviço retornar dado diferente do esperado, CEP inexistente ou erro HTTP, o teste falha.
+### 3.2 Integração real
 
-Essa separação reduz falsos diagnósticos: uma indisponibilidade externa não invalida a lógica local, e uma lógica correta não é confundida com uma integração realmente comprovada.
+Executa chamadas reais ao ViaCEP e valida os dados recebidos.
 
-## 4. Casos de teste
+Essa separação permite distinguir defeitos de regra, problemas da massa de teste e falhas externas de infraestrutura.
 
-| CEP | Cidade esperada | UF | Resultado esperado |
+## 4. Casos de teste validados
+
+| CEP | Cidade esperada | UF | Resultado real |
 |---|---|---|---|
 | 01001000 | São Paulo | SP | PASS |
 | 40010000 | Salvador | BA | PASS |
 | 30130110 | Belo Horizonte | MG | PASS |
 
-## 5. Critérios de aceite
+## 5. Resultado da execução final
 
-A entrega é considerada aprovada quando:
+Ambiente:
 
-- o JSON possui exatamente os campos `cep`, `cidade`, `estado`;
-- existem três casos de entrada;
-- todos os CEPs possuem 8 dígitos;
-- a consulta real ao ViaCEP responde sem erro;
-- cidade e UF retornadas coincidem com os dados esperados;
-- o cenário Gherkin de login está presente e legível;
-- a suíte é executável por Pytest;
-- existe automação em CI para repetição dos testes.
+- Windows;
+- Python 3.12.10;
+- Pytest 8.3.5;
+- ambiente virtual `.venv`.
 
-## 6. Atividade Web - Gherkin
+Resultado:
 
-O cenário `features/login_portal_aluno.feature` especifica o login com credenciais válidas no Portal do Aluno, descrevendo pré-condições, ações e resultado esperado em linguagem Gherkin.
-
-## 7. Integração com o Projeto API Correios
-
-O recorte acadêmico não modifica o fluxo produtivo do projeto. Ele demonstra um uso significativo de QA aplicado ao tratamento de dados de endereço: uma inconsistência entre CEP, cidade e UF deve ser detectada antes de o dado alimentar etapas operacionais posteriores.
-
-Assim, o teste funciona conceitualmente como um **quality gate de endereço**.
-
-## 8. Execução e evidências
-
-Execução local:
-
-```bash
-python -m pytest -v
+```text
+5 passed, 3 deselected
+3 passed, 5 deselected
+QA_UNIDADE3=PASS
 ```
 
-Execução automatizada:
+Total efetivamente validado: **8 testes PASS**.
 
-- GitHub Actions: `.github/workflows/qa-unidade3.yml`;
-- artefato gerado: `reports/junit.xml`.
+## 6. Evidência de melhoria
 
-## 9. Limites e transparência
+Durante uma execução anterior, o CEP `40020000` retornou `{"erro": "true"}`.
 
-O teste de integração depende de conectividade com o ViaCEP. A documentação oficial do serviço informa que o CEP deve possuir 8 dígitos; formato inválido resulta em HTTP 400 e CEP válido inexistente retorna `erro: true`.
+O teste detectou a inconsistência e o processo de QA resultou em:
 
-A suíte implementada trata o formato antes da chamada e transforma CEP não encontrado em falha explícita.
+1. diagnóstico da massa de teste;
+2. substituição por `40010000`;
+3. melhoria do código para reconhecer `erro` booleano ou string;
+4. criação de teste de regressão;
+5. reteste completo;
+6. resultado final 8/8 PASS.
+
+Esse ciclo evidencia a aplicação prática de QA, pois a falha não foi ocultada: foi usada para melhorar tanto os dados quanto a robustez da automação.
+
+## 7. Atividade Web - Gherkin
+
+O arquivo `features/login_portal_aluno.feature` especifica o login com credenciais válidas no Portal do Aluno, descrevendo pré-condição, ação e resultado esperado em linguagem Gherkin.
+
+## 8. Critérios de aceite
+
+A atividade foi considerada aprovada porque:
+
+- o JSON possui exatamente `cep`, `cidade` e `estado`;
+- existem três casos;
+- os CEPs possuem 8 dígitos;
+- a consulta real ao ViaCEP foi executada;
+- cidade e UF retornadas coincidiram com os dados esperados;
+- o cenário Gherkin está versionado;
+- a suíte é executável por Pytest;
+- a execução é reproduzível por `run_qa.cmd`;
+- o resultado final foi `QA_UNIDADE3=PASS`.
+
+## 9. GitHub Actions
+
+O workflow `.github/workflows/qa-unidade3.yml` está publicado. No momento da validação, o GitHub criou os runs, mas os jobs encerraram antes da execução de qualquer step.
+
+Esse comportamento foi classificado separadamente como **BLOCKED_BY_ACTIONS_STARTUP** e não altera o resultado funcional obtido em execução real local.
 
 ## 10. Conclusão
 
-A atividade atende ao enunciado e adiciona práticas de QA relevantes: dados externos, assertions explícitas, parametrização, separação de testes locais e de integração, mensagens de diagnóstico, execução repetível e CI.
+A atividade atende ao enunciado e demonstra práticas relevantes de Qualidade de Software: teste orientado por dados, assertions explícitas, integração com serviço externo, tratamento de falhas, regressão, reteste, ambiente isolado e documentação de evidências.
 
-O resultado é uma entrega acadêmica pequena, mas executável, auditável e conectada a um cenário real de qualidade de dados no Projeto API Correios.
+O resultado final é uma entrega acadêmica executável, auditável e contextualizada com um cenário real do Projeto API Correios.
