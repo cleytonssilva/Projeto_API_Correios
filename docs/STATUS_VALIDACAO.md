@@ -36,3 +36,31 @@ Resultado esperado:
 - `30130110` → Belo Horizonte / MG
 
 A atividade permanece executável localmente e o bloqueio de CI está classificado separadamente como infraestrutura de GitHub Actions.
+
+
+## Registro de execução real no Windows
+
+Execução realizada no Windows com Python 3.12.10 e ambiente virtual isolado:
+
+- Validações locais: **PASS — 4/4**.
+- Integração real ViaCEP:
+  - `01001000` → **PASS** — São Paulo/SP.
+  - `40020000` → **FAIL** — ViaCEP retornou `{"erro": "true"}`.
+  - `30130110` → **PASS** — Belo Horizonte/MG.
+
+### Diagnóstico do FAIL
+
+O caso `40020000` foi classificado como massa de teste inadequada para a base atual do ViaCEP. A execução também revelou que o campo `erro` pode chegar como string `"true"`, enquanto a implementação inicial tratava apenas o booleano `true`.
+
+### Correções aplicadas
+
+- caso Salvador alterado para `40010000`;
+- tratamento de `erro` normalizado para booleano ou string;
+- novo teste determinístico adicionado para reproduzir `{"erro": "true"}`;
+- documentação e relatório atualizados.
+
+### Estado
+
+`RETEST_REQUIRED=true`
+
+O aceite final da integração será dado somente após nova execução real com os três CEPs atualizados.
