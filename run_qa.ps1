@@ -1,12 +1,21 @@
 $ErrorActionPreference = "Stop"
 
-Write-Host "[1/3] Instalando dependencias..."
-python -m pip install -r requirements.txt
+$PythonVenv = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 
-Write-Host "[2/3] Executando validacoes locais..."
-python -m pytest -v -m "not integration"
+if (-not (Test-Path $PythonVenv)) {
+    Write-Host "[0/4] Criando ambiente virtual..."
+    python -m venv .venv
+}
 
-Write-Host "[3/3] Executando integracao real com o ViaCEP..."
-python -m pytest -v -m integration --junitxml=reports/junit.xml
+New-Item -ItemType Directory -Force -Path (Join-Path $PSScriptRoot "reports") | Out-Null
 
-Write-Host "QA_UNIDADE3=PASS"
+Write-Host "[1/4] Instalando dependencias no ambiente virtual..."
+& $PythonVenv -m pip install -r requirements.txt
+
+Write-Host "[2/4] Executando validacoes locais..."
+& $PythonVenv -m pytest -v -m "not integration"
+
+Write-Host "[3/4] Executando integracao real com o ViaCEP..."
+& $PythonVenv -m pytest -v -m integration --junitxml=reports/junit.xml
+
+Write-Host "[4/4] QA_UNIDADE3=PASS"
